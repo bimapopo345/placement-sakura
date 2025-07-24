@@ -45,6 +45,7 @@
                                             <th>Nama</th>
                                             <th>Jenis Kelamin</th>
                                             <th>Tempat, Tanggal Lahir</th>
+                                            <th>Saldo Tabungan</th>
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
@@ -77,6 +78,11 @@
                                                     </span>
                                                 </td>
                                                 <td><?= esc($s['tempat_lahir']) ?>, <?= date('d/m/Y', strtotime($s['tanggal_lahir'])) ?></td>
+                                                <td>
+                                                    <span class="badge bg-success fs-6">
+                                                        Rp <?= number_format($s['saldo_tabungan'], 0, ',', '.') ?>
+                                                    </span>
+                                                </td>
                                                 <td>
                                                     <div class="btn-group" role="group">
                                                         <a href="<?= base_url('siswa/detail/' . $s['id']) ?>" 

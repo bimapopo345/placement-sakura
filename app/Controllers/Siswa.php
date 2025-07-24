@@ -4,22 +4,32 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\SiswaModel;
+use App\Models\TabunganModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class Siswa extends BaseController
 {
     protected $siswaModel;
+    protected $tabunganModel;
 
     public function __construct()
     {
         $this->siswaModel = new SiswaModel();
+        $this->tabunganModel = new TabunganModel();
     }
 
     public function index()
     {
+        $siswa = $this->siswaModel->findAll();
+        
+        // Tambahkan saldo tabungan untuk setiap siswa
+        foreach ($siswa as &$s) {
+            $s['saldo_tabungan'] = $this->tabunganModel->getSaldoSiswa($s['id']);
+        }
+
         $data = [
             'title' => 'Daftar Siswa',
-            'siswa' => $this->siswaModel->findAll()
+            'siswa' => $siswa
         ];
 
         return view('siswa/list_siswa', $data);
@@ -33,9 +43,19 @@ class Siswa extends BaseController
             throw new \CodeIgniter\Exceptions\PageNotFoundException('Siswa tidak ditemukan');
         }
 
+        // Ambil data tabungan
+        $saldo = $this->tabunganModel->getSaldoSiswa($id);
+        $riwayatTerbaru = $this->tabunganModel->getRiwayatSiswa($id, 5); // 5 transaksi terakhir
+        $totalSetoran = $this->tabunganModel->getTotalSetoran($id);
+        $totalPenarikan = $this->tabunganModel->getTotalPenarikan($id);
+
         $data = [
             'title' => 'Detail Siswa',
-            'siswa' => $siswa
+            'siswa' => $siswa,
+            'saldo' => $saldo,
+            'riwayatTerbaru' => $riwayatTerbaru,
+            'totalSetoran' => $totalSetoran,
+            'totalPenarikan' => $totalPenarikan
         ];
 
         return view('siswa/detail_siswa', $data);
@@ -172,5 +192,102 @@ class Siswa extends BaseController
         $this->siswaModel->delete($id);
 
         return redirect()->to('/siswa')->with('success', 'Data siswa berhasil dihapus');
+    }
+
+    // Method untuk tabungan
+    public function setorTabungan($id)
+    {
+        $siswa = $this->siswaModel->find($id);
+        
+        if (!$siswa) {
+            throw new \CodeIgniter\Exceptions\PageNotFoundException('Siswa tidak ditemukan');
+        }
+
+        $rules = [
+            'jumlah' => 'required|decimal|greater_than[0]',
+            'keterangan' => 'permit_empty|max_length[255]'
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('error', 'Data tidak valid');
+        }
+
+        $data = [
+            'siswa_id' => $id,
+            'jumlah' => $this->request->getPost('jumlah'),
+            'jenis' => 'setoran',
+            'tanggal' => date('Y-m-d'),
+            'keterangan' => $this->request->getPost('keterangan') ?: 'Setoran tabungan'
+        ];
+
+        if ($this->tabunganModel->save($data)) {
+            return redirect()->back()->with('success', 'Setoran tabungan berhasil ditambahkan');
+        } else {
+            return redirect()->back()->with('error', 'Gagal menambahkan setoran tabungan');
+        }
+    }
+
+    public function tarikTabungan($id)
+    {
+        $siswa = $this->siswaModel->find($id);
+        
+        if (!$siswa) {
+            throw new \CodeIgniter\Exceptions\PageNotFoundException('Siswa tidak ditemukan');
+        }
+
+        $rules = [
+            'jumlah' => 'required|decimal|greater_than[0]',
+            'keterangan' => 'permit_empty|max_length[255]'
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('error', 'Data tidak valid');
+        }
+
+        $jumlahPenarikan = $this->request->getPost('jumlah');
+        
+        // Cek apakah saldo mencukupi
+        if (!$this->tabunganModel->cekSaldoCukup($id, $jumlahPenarikan)) {
+            return redirect()->back()->with('error', 'Saldo tidak mencukupi untuk penarikan');
+        }
+
+        $data = [
+            'siswa_id' => $id,
+            'jumlah' => $jumlahPenarikan,
+            'jenis' => 'penarikan',
+            'tanggal' => date('Y-m-d'),
+            'keterangan' => $this->request->getPost('keterangan') ?: 'Penarikan tabungan'
+        ];
+
+        if ($this->tabunganModel->save($data)) {
+            return redirect()->back()->with('success', 'Penarikan tabungan berhasil');
+        } else {
+            return redirect()->back()->with('error', 'Gagal melakukan penarikan tabungan');
+        }
+    }
+
+    public function riwayatTabungan($id)
+    {
+        $siswa = $this->siswaModel->find($id);
+        
+        if (!$siswa) {
+            throw new \CodeIgniter\Exceptions\PageNotFoundException('Siswa tidak ditemukan');
+        }
+
+        $riwayat = $this->tabunganModel->getRiwayatSiswa($id);
+        $saldo = $this->tabunganModel->getSaldoSiswa($id);
+        $totalSetoran = $this->tabunganModel->getTotalSetoran($id);
+        $totalPenarikan = $this->tabunganModel->getTotalPenarikan($id);
+
+        $data = [
+            'title' => 'Riwayat Tabungan - ' . $siswa['nama'],
+            'siswa' => $siswa,
+            'riwayat' => $riwayat,
+            'saldo' => $saldo,
+            'totalSetoran' => $totalSetoran,
+            'totalPenarikan' => $totalPenarikan
+        ];
+
+        return view('siswa/riwayat_tabungan', $data);
     }
 }

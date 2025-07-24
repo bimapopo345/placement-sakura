@@ -24,6 +24,20 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        <?php if (session()->getFlashdata('success')): ?>
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <?= session()->getFlashdata('success') ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (session()->getFlashdata('error')): ?>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <?= session()->getFlashdata('error') ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        <?php endif; ?>
+
                         <div class="row">
                             <!-- Foto Siswa -->
                             <div class="col-md-4 text-center mb-4">
@@ -146,6 +160,152 @@
                                         </div>
                                     </div>
                                 <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <!-- Informasi Tabungan -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-piggy-bank text-success"></i> Informasi Tabungan
+                                </h5>
+                                
+                                <!-- Saldo dan Statistik -->
+                                <div class="row mb-4">
+                                    <div class="col-md-4">
+                                        <div class="card bg-success text-white">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-wallet fa-2x mb-2"></i>
+                                                <h6>Saldo Saat Ini</h6>
+                                                <h4>Rp <?= number_format($saldo, 0, ',', '.') ?></h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card bg-primary text-white">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-arrow-up fa-2x mb-2"></i>
+                                                <h6>Total Setoran</h6>
+                                                <h5>Rp <?= number_format($totalSetoran, 0, ',', '.') ?></h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card bg-danger text-white">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-arrow-down fa-2x mb-2"></i>
+                                                <h6>Total Penarikan</h6>
+                                                <h5>Rp <?= number_format($totalPenarikan, 0, ',', '.') ?></h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Form Transaksi -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header bg-success text-white">
+                                                <h6 class="mb-0"><i class="fas fa-plus"></i> Setor Tabungan</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <form action="<?= base_url('siswa/setor/' . $siswa['id']) ?>" method="post">
+                                                    <div class="mb-3">
+                                                        <label for="jumlah_setor" class="form-label">Jumlah Setoran</label>
+                                                        <input type="number" class="form-control" id="jumlah_setor" name="jumlah" 
+                                                               placeholder="Masukkan jumlah" min="1000" step="1000" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="keterangan_setor" class="form-label">Keterangan</label>
+                                                        <input type="text" class="form-control" id="keterangan_setor" name="keterangan" 
+                                                               placeholder="Keterangan (opsional)">
+                                                    </div>
+                                                    <button type="submit" class="btn btn-success w-100">
+                                                        <i class="fas fa-save"></i> Setor
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header bg-danger text-white">
+                                                <h6 class="mb-0"><i class="fas fa-minus"></i> Tarik Tabungan</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <form action="<?= base_url('siswa/tarik/' . $siswa['id']) ?>" method="post">
+                                                    <div class="mb-3">
+                                                        <label for="jumlah_tarik" class="form-label">Jumlah Penarikan</label>
+                                                        <input type="number" class="form-control" id="jumlah_tarik" name="jumlah" 
+                                                               placeholder="Masukkan jumlah" min="1000" step="1000" 
+                                                               max="<?= $saldo ?>" required>
+                                                        <small class="text-muted">Maksimal: Rp <?= number_format($saldo, 0, ',', '.') ?></small>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="keterangan_tarik" class="form-label">Keterangan</label>
+                                                        <input type="text" class="form-control" id="keterangan_tarik" name="keterangan" 
+                                                               placeholder="Keterangan (opsional)">
+                                                    </div>
+                                                    <button type="submit" class="btn btn-danger w-100" 
+                                                            <?= $saldo <= 0 ? 'disabled' : '' ?>>
+                                                        <i class="fas fa-money-bill-wave"></i> Tarik
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Riwayat Transaksi Terbaru -->
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0"><i class="fas fa-history"></i> Riwayat Transaksi Terbaru</h6>
+                                        <a href="<?= base_url('siswa/riwayat/' . $siswa['id']) ?>" class="btn btn-sm btn-outline-primary">
+                                            Lihat Semua
+                                        </a>
+                                    </div>
+                                    <div class="card-body">
+                                        <?php if (empty($riwayatTerbaru)): ?>
+                                            <div class="text-center py-3">
+                                                <i class="fas fa-receipt fa-2x text-muted mb-2"></i>
+                                                <p class="text-muted mb-0">Belum ada transaksi</p>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Tanggal</th>
+                                                            <th>Jenis</th>
+                                                            <th>Jumlah</th>
+                                                            <th>Keterangan</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php foreach ($riwayatTerbaru as $r): ?>
+                                                            <tr>
+                                                                <td><?= date('d/m/Y', strtotime($r['tanggal'])) ?></td>
+                                                                <td>
+                                                                    <?php if ($r['jenis'] == 'setoran'): ?>
+                                                                        <span class="badge bg-success">Setoran</span>
+                                                                    <?php else: ?>
+                                                                        <span class="badge bg-danger">Penarikan</span>
+                                                                    <?php endif; ?>
+                                                                </td>
+                                                                <td>
+                                                                    <span class="<?= $r['jenis'] == 'setoran' ? 'text-success' : 'text-danger' ?>">
+                                                                        <?= $r['jenis'] == 'setoran' ? '+' : '-' ?> Rp <?= number_format($r['jumlah'], 0, ',', '.') ?>
+                                                                    </span>
+                                                                </td>
+                                                                <td><?= esc($r['keterangan']) ?></td>
+                                                            </tr>
+                                                        <?php endforeach; ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
