@@ -26,6 +26,35 @@
                             </div>
                         <?php endif; ?>
 
+                        <!-- Info Sorting -->
+                        <?php if (!empty($siswa)): ?>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <small class="text-muted">
+                                        <i class="fas fa-sort"></i> 
+                                        Diurutkan berdasarkan: 
+                                        <strong>
+                                            <?php
+                                            $sortLabels = [
+                                                'nama' => 'Nama',
+                                                'jenis_kelamin' => 'Jenis Kelamin',
+                                                'tempat_lahir' => 'Tempat Lahir',
+                                                'saldo_tabungan' => 'Saldo Tabungan'
+                                            ];
+                                            echo $sortLabels[$currentSort] ?? 'Nama';
+                                            ?>
+                                        </strong>
+                                        (<?= $currentOrder == 'asc' ? 'A-Z / Terkecil-Terbesar' : 'Z-A / Terbesar-Terkecil' ?>)
+                                    </small>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <small class="text-muted">
+                                        Total: <strong><?= count($siswa) ?></strong> siswa
+                                    </small>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
                         <?php if (empty($siswa)): ?>
                             <div class="text-center py-4">
                                 <i class="fas fa-users fa-3x text-muted mb-3"></i>
@@ -42,10 +71,50 @@
                                         <tr>
                                             <th>No</th>
                                             <th>Foto</th>
-                                            <th>Nama</th>
-                                            <th>Jenis Kelamin</th>
-                                            <th>Tempat, Tanggal Lahir</th>
-                                            <th>Saldo Tabungan</th>
+                                            <th>
+                                                <a href="<?= base_url('siswa?sort=nama&order=' . ($currentSort == 'nama' && $currentOrder == 'asc' ? 'desc' : 'asc')) ?>" 
+                                                   class="text-white text-decoration-none">
+                                                    Nama
+                                                    <?php if ($currentSort == 'nama'): ?>
+                                                        <i class="fas fa-sort-<?= $currentOrder == 'asc' ? 'up' : 'down' ?>"></i>
+                                                    <?php else: ?>
+                                                        <i class="fas fa-sort text-muted"></i>
+                                                    <?php endif; ?>
+                                                </a>
+                                            </th>
+                                            <th>
+                                                <a href="<?= base_url('siswa?sort=jenis_kelamin&order=' . ($currentSort == 'jenis_kelamin' && $currentOrder == 'asc' ? 'desc' : 'asc')) ?>" 
+                                                   class="text-white text-decoration-none">
+                                                    Jenis Kelamin
+                                                    <?php if ($currentSort == 'jenis_kelamin'): ?>
+                                                        <i class="fas fa-sort-<?= $currentOrder == 'asc' ? 'up' : 'down' ?>"></i>
+                                                    <?php else: ?>
+                                                        <i class="fas fa-sort text-muted"></i>
+                                                    <?php endif; ?>
+                                                </a>
+                                            </th>
+                                            <th>
+                                                <a href="<?= base_url('siswa?sort=tempat_lahir&order=' . ($currentSort == 'tempat_lahir' && $currentOrder == 'asc' ? 'desc' : 'asc')) ?>" 
+                                                   class="text-white text-decoration-none">
+                                                    Tempat, Tanggal Lahir
+                                                    <?php if ($currentSort == 'tempat_lahir'): ?>
+                                                        <i class="fas fa-sort-<?= $currentOrder == 'asc' ? 'up' : 'down' ?>"></i>
+                                                    <?php else: ?>
+                                                        <i class="fas fa-sort text-muted"></i>
+                                                    <?php endif; ?>
+                                                </a>
+                                            </th>
+                                            <th>
+                                                <a href="<?= base_url('siswa?sort=saldo_tabungan&order=' . ($currentSort == 'saldo_tabungan' && $currentOrder == 'asc' ? 'desc' : 'asc')) ?>" 
+                                                   class="text-white text-decoration-none">
+                                                    Saldo Tabungan
+                                                    <?php if ($currentSort == 'saldo_tabungan'): ?>
+                                                        <i class="fas fa-sort-<?= $currentOrder == 'asc' ? 'up' : 'down' ?>"></i>
+                                                    <?php else: ?>
+                                                        <i class="fas fa-sort text-muted"></i>
+                                                    <?php endif; ?>
+                                                </a>
+                                            </th>
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>

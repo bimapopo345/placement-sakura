@@ -20,16 +20,47 @@ class Siswa extends BaseController
 
     public function index()
     {
-        $siswa = $this->siswaModel->findAll();
+        // Ambil parameter sorting dari URL
+        $sortBy = $this->request->getGet('sort') ?? 'nama';
+        $sortOrder = $this->request->getGet('order') ?? 'asc';
+        
+        // Validasi parameter sorting
+        $allowedSorts = ['nama', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'tanggal_bergabung', 'saldo_tabungan'];
+        if (!in_array($sortBy, $allowedSorts)) {
+            $sortBy = 'nama';
+        }
+        
+        if (!in_array($sortOrder, ['asc', 'desc'])) {
+            $sortOrder = 'asc';
+        }
+        
+        // Jika sorting berdasarkan saldo tabungan, ambil data tanpa sorting dulu
+        if ($sortBy === 'saldo_tabungan') {
+            $siswa = $this->siswaModel->findAll();
+        } else {
+            $siswa = $this->siswaModel->orderBy($sortBy, $sortOrder)->findAll();
+        }
         
         // Tambahkan saldo tabungan untuk setiap siswa
         foreach ($siswa as &$s) {
             $s['saldo_tabungan'] = $this->tabunganModel->getSaldoSiswa($s['id']);
         }
+        
+        // Jika sorting berdasarkan saldo tabungan
+        if ($sortBy === 'saldo_tabungan') {
+            usort($siswa, function($a, $b) use ($sortOrder) {
+                if ($sortOrder === 'desc') {
+                    return $b['saldo_tabungan'] <=> $a['saldo_tabungan'];
+                }
+                return $a['saldo_tabungan'] <=> $b['saldo_tabungan'];
+            });
+        }
 
         $data = [
             'title' => 'Daftar Siswa',
-            'siswa' => $siswa
+            'siswa' => $siswa,
+            'currentSort' => $sortBy,
+            'currentOrder' => $sortOrder
         ];
 
         return view('siswa/list_siswa', $data);
